@@ -28,7 +28,6 @@ public class HiPermission {
     /** Manifest文件申请的权限 **/
     private static String [] manifestPermissions;
 
-    private Activity act;
     /** 权限列表 **/
     private List<Permission> permissions;
 
@@ -39,16 +38,8 @@ public class HiPermission {
     /** 需要解释的权限回调 **/
     private OnRationaleListener rationaleListener;
 
-    public static HiPermission with(Activity act) {
-        return new HiPermission(act);
-    }
-
-    public static HiPermission with(Fragment fragment) {
-        return new HiPermission(fragment.getActivity());
-    }
-
-    public static HiPermission with(android.app.Fragment fragment) {
-        return new HiPermission(fragment.getActivity());
+    public static HiPermission with() {
+        return new HiPermission();
     }
 
     /**
@@ -67,7 +58,7 @@ public class HiPermission {
 
     public static boolean checkSelf(@NonNull Context context,
                                     @NonNull final Permission permission) {
-        initPermissions(context);
+        initPermissions();
         // 筛选有效权限
         filterPermission(new ArrayList<Permission>() {
             {
@@ -78,34 +69,34 @@ public class HiPermission {
                 permission.getContent()) == PackageManager.PERMISSION_GRANTED;
     }
 
-    public static boolean checkSelf(@NonNull Context context,
-                                    @NonNull List<Permission> permissions) {
-        initPermissions(context);
+    public static boolean checkSelf(@NonNull List<Permission> permissions) {
+        initPermissions();
+        Activity act = Utils.getTopActivity();
         for (Permission permission : permissions) {
-            if (!checkSelf(context, permission))
+            if (!checkSelf(act, permission))
                 return false;
         }
         return true;
     }
 
-    public static boolean checkSelf(@NonNull Context context,
-                                    @NonNull Permission... permissions) {
-        initPermissions(context);
+    public static boolean checkSelf(@NonNull Permission... permissions) {
+        initPermissions();
+        Activity act = Utils.getTopActivity();
         for (Permission permission : permissions) {
-            if (!checkSelf(context, permission))
+            if (!checkSelf(act, permission))
                 return false;
         }
         return true;
     }
 
     // 初始化Manifest中的权限
-    private static void initPermissions(Context context) {
+    private static void initPermissions() {
         if (manifestPermissions != null)
             return;
         PackageInfo pi;
+        Context context = Utils.getTopActivity();
         try {
-            pi = context.getPackageManager().getPackageInfo(context.getPackageName(),
-                    PackageManager.GET_PERMISSIONS);
+            pi = context.getPackageManager().getPackageInfo(context.getPackageName(), PackageManager.GET_PERMISSIONS);
             if (pi != null) {
                 manifestPermissions = pi.requestedPermissions;
             }
@@ -129,10 +120,9 @@ public class HiPermission {
         }
     }
 
-    private HiPermission(Activity act) {
-        this.act = act;
+    private HiPermission() {
         this.permissions = new ArrayList<>();
-        initPermissions(act);
+        initPermissions();
     }
 
     public HiPermission permission(@NonNull Permission permission) {
@@ -184,7 +174,8 @@ public class HiPermission {
     }
 
     public void request() {
-        if (checkSelf(act, permissions))
+        Activity act = Utils.getTopActivity();
+        if (checkSelf(permissions))
             return;
         HiCache.getInstance().put(act.getClass().getName(), this);
         // 启动PermissionActivity
@@ -239,6 +230,7 @@ public class HiPermission {
                 if (results[0] == PackageManager.PERMISSION_GRANTED) {
                     granted.add(Permission.getPermission(content));
                 } else {
+                    Activity act = Utils.getTopActivity();
                     if (ActivityCompat.shouldShowRequestPermissionRationale(act, content)) {
                         denied.add(Permission.getPermission(content));
                     } else {

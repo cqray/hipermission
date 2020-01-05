@@ -12,7 +12,7 @@ import android.provider.Settings;
  * 直接跳转到权限后返回，可以监控权限授权情况，但是，跳转到应用详情页，无法监测权限情况
  * 是否要加以区分，若是应用详情页，则跳转回来后，onRestart检测所求权限，如果授权，则收回提示，如果没授权，则继续提示
  */
-public class SettingUtil {
+public class RomUtils {
 
     private static final int PERMISSION_SETTING_FOR_RESULT = 9999;
     /** 华为 **/
@@ -56,14 +56,14 @@ public class SettingUtil {
             case MANUFACTURER_LG: return openLG(act);
             case MANUFACTURER_LETV: return openLetv(act);
             default:
-                try {
-                    // 防止应用详情页也找不到，捕获异常后跳转到设置，
-                    // 这里跳转最好是两级，太多用户也会觉得麻烦，还不如不跳
-                    openNativeSetting(act);
-                } catch (Exception e) {
-                    SystemConfig(act);
-                }
-                break;
+//                try {
+//                    // 防止应用详情页也找不到，捕获异常后跳转到设置，
+//                    // 这里跳转最好是两级，太多用户也会觉得麻烦，还不如不跳
+//                    openNativeSetting(act);
+//                } catch (Exception e) {
+//                    SystemConfig(act);
+//                }
+//                break;
         }
         return false;
     }
@@ -76,9 +76,9 @@ public class SettingUtil {
             Intent intent = new Intent();
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("packageName", act.getPackageName());
-            ComponentName comp = new ComponentName("com.huawei.systemmanager",
+            ComponentName component = new ComponentName("com.huawei.systemmanager",
                     "com.huawei.permissionmanager.ui.MainActivity");
-            intent.setComponent(comp);
+            intent.setComponent(component);
             act.startActivityForResult(intent, PERMISSION_SETTING_FOR_RESULT);
             return true;
         } catch (Exception e) {
@@ -107,11 +107,11 @@ public class SettingUtil {
     private static boolean openXiaomi(Activity act) {
         try {
             // MIUI 8 9
-            Intent localIntent = new Intent("miui.intent.action.APP_PERM_EDITOR");
-            localIntent.setClassName("com.miui.securitycenter",
+            Intent intent = new Intent("miui.intent.action.APP_PERM_EDITOR");
+            intent.setClassName("com.miui.securitycenter",
                     "com.miui.permcenter.permissions.PermissionsEditorActivity");
-            localIntent.putExtra("extra_pkgname", act.getPackageName());
-            act.startActivityForResult(localIntent, PERMISSION_SETTING_FOR_RESULT);
+            intent.putExtra("extra_pkgname", act.getPackageName());
+            act.startActivityForResult(intent, PERMISSION_SETTING_FOR_RESULT);
             return true;
         } catch (Exception e) {
             try {
@@ -203,7 +203,7 @@ public class SettingUtil {
     /**
      * 系统设置界面
      */
-    private static void SystemConfig(Activity act) {
+    private static void openSystemSetting(Activity act) {
         Intent intent = new Intent(Settings.ACTION_SETTINGS);
         act.startActivity(intent);
     }
@@ -224,4 +224,5 @@ public class SettingUtil {
         }
         act.startActivityForResult(intent, PERMISSION_SETTING_FOR_RESULT);
     }
+
 }
