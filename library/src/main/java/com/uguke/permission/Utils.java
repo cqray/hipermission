@@ -9,7 +9,6 @@ import android.os.Message;
 import android.util.Log;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Queue;
 import java.util.Stack;
 
 final class Utils {
@@ -28,10 +27,12 @@ final class Utils {
         @Override
         public boolean handleMessage(Message message) {
             if (getApplicationByReflect() == null) {
-                mHandler.sendEmptyMessageDelayed(0, 10);
+                mHandler.sendEmptyMessage(0);
+                Log.e("数据", "注册3");
             } else {
                 mHandler.removeCallbacksAndMessages(null);
                 registerActivityLifecycleCallbacks();
+                Log.e("数据", "注册4");
             }
             return false;
         }
@@ -47,6 +48,7 @@ final class Utils {
     private void registerActivityLifecycleCallbacks() {
         Application application = getApplicationByReflect();
         assert application != null;
+        Log.e("数据", "注册");
         application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -102,6 +104,7 @@ final class Utils {
         if (utils.mStack.size() > 0) {
             return utils.mStack.lastElement();
         }
+        Log.e("数据", "注册2");
         Log.e("数据", (getApplicationByReflect() == null) + "");
         throw new NullPointerException("you should init first.");
     }
